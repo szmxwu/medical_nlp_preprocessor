@@ -1,0 +1,12 @@
+{
+  "version_to_file": {
+    "报告": "report_replace_v1.xlsx",
+    "标题": "title_replace_v1.xlsx",
+    "申请单": "application_replace_v1.xlsx"
+  },
+  "file_to_version": {
+    "report_replace_v1.xlsx": "报告",
+    "title_replace_v1.xlsx": "标题",
+    "application_replace_v1.xlsx": "申请单"
+  }
+}

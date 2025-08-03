@@ -1,0 +1,10 @@
+{
+  "valid_versions": ["报告", "标题", "申请单"],
+  "valid_modalities": ["通用", "CT", "MR", "DR", "病理", "超声"],
+  "version_modality_mapping": {
+    "报告": ["通用", "CT", "MR", "DR", "病理", "超声"],
+    "标题": ["通用", "CT", "MR", "DR"],
+    "申请单": ["通用", "CT", "MR"]
+  },
+  "description": "此文件包含有效的version和modality参数组合信息，用于参数验证和错误提示。"
+}

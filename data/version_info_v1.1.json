@@ -1,0 +1,30 @@
+{
+  "version": "1.1.0",
+  "date": "2025-08-03",
+  "description": "多文件版本 - 按应用场景拆分规则文件",
+  "changes": [
+    "将单一Excel文件拆分为多个场景专用文件",
+    "支持独立的版本管理和维护",
+    "保持原有功能完全兼容",
+    "优化文件组织结构和加载逻辑"
+  ],
+  "file_structure": {
+    "report_replace_v1.xlsx": "报告场景规则文件",
+    "title_replace_v1.xlsx": "标题场景规则文件",
+    "application_replace_v1.xlsx": "申请单场景规则文件"
+  },
+  "modalities": [
+    "通用",
+    "CT",
+    "MR",
+    "DR",
+    "病理",
+    "超声"
+  ],
+  "scenarios": [
+    "报告",
+    "标题",
+    "申请单"
+  ],
+  "rules_directory": "rules/"
+}
