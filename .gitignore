@@ -1,0 +1,30 @@
+# 忽略Python编译文件和缓存
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+__pycache__
+
+# 忽略文档和报告文件
+*.docx
+*.pdf
+
+# 忽略测试和临时文件
+*.log
+*.tmp
+*.temp
+
+# 忽略IDE相关文件
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# 忽略用户输入文件
+user_input_files/
+
+# 忽略医疗NLP预处理器数据（如果规则已外置）
+medical_nlp_preprocessor/data/replace_v1.0.xlsx
