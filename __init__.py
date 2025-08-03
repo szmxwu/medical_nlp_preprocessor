@@ -129,7 +129,7 @@ def quick_test():
         print(f"分句结果数量: {len(results)}")
         for i, result in enumerate(results, 1):
             print(f"句子{i} - 原始: {result['original']}")
-            print(f"句子{i} - 处理后: {result['preprocessed']}")
+            print(f"句子{i} - 处理: {result['preprocessed']}")
         return True
     except Exception as e:
         print(f"快速测试失败: {e}")

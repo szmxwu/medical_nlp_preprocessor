@@ -38,6 +38,10 @@ class Preprocessor:
         self.text_replacer = TextReplacer(version=version, modality=modality)
         self.medical_expander = MedicalExpander()
         
+        # 初始化标点修正组件（只加载一次）
+        self.punctuation_corrector = None
+        self._init_punctuation_corrector()
+        
         # 加载配置
         self._load_patterns()
         
@@ -73,8 +77,80 @@ class Preprocessor:
             # 不使用缓存的直接处理
             return self._process_without_cache(text)
     
+    def _init_punctuation_corrector(self):
+        """初始化标点修正组件
+        只在程序启动时加载一次Punctuation_correction.xlsx
+        """
+        if self.punctuation_corrector is None:
+            from ..data.rule_loader import RuleLoader, ReplacementRule, load_replacement_rules
+            import os
+            import sys
+            
+            try:
+                # 创建一个专用的TextReplacer实例，专门用于标点修正
+                self.punctuation_corrector = TextReplacer()
+                
+                # 获取标点修正规则文件路径
+                # 尝试从项目根目录获取
+                try:
+                    from medical_nlp_preprocessor import PROJECT_ROOT
+                    rules_file = os.path.join(PROJECT_ROOT, 'data', 'rules', 'Punctuation_correction.xlsx')
+                except ImportError:
+                    # 如果无法导入PROJECT_ROOT，使用相对路径
+                    rules_file = os.path.join('medical_nlp_preprocessor', 'data', 'rules', 'Punctuation_correction.xlsx')
+                
+                # 检查文件是否存在
+                if os.path.exists(rules_file):
+                    try:
+                        # 创建专用的RuleLoader实例加载标点修正规则
+                        # 由于已经指定了具体的Excel文件，不需要再使用版本和设备类型参数
+                        rule_loader = RuleLoader(rules_path=rules_file)
+                        # 直接从Excel文件加载所有规则，不使用版本和设备类型筛选
+                        # 从Excel文件的所有工作表中加载规则
+                        import pandas as pd
+                        rules = []
+                        excel_file = pd.ExcelFile(rules_file)
+                        for sheet_name in excel_file.sheet_names:
+                            try:
+                                df = pd.read_excel(excel_file, sheet_name=sheet_name)
+                                # 处理每一行规则
+                                for _, row in df.iterrows():
+                                    if pd.notna(row.get('原始值')):
+                                        # 创建替换规则
+                                        from ..data.rule_loader import ReplacementRule
+                                        rule = ReplacementRule(
+                                            original=str(row['原始值']),
+                                            replacement=str(row.get('替换值', '')) if pd.notna(row.get('替换值')) else '',
+                                            is_regex=bool(row.get('IsRegex', False)),
+                                            version='标点修正',  # 使用自定义版本标识
+                                            modality='通用'  # 使用通用设备类型
+                                        )
+                                        rules.append(rule)
+                            except Exception as e:
+                                print(f"加载工作表 {sheet_name} 失败: {e}")
+                        
+                        
+                        # 设置规则到标点修正器
+                        self.punctuation_corrector._rules = rules
+                        self.punctuation_corrector._compile_rules()
+                        
+                        print(f"标点修正规则加载完成，共 {len(rules)} 条规则")
+                    except Exception as e:
+                        print(f"加载标点修正规则失败: {e}")
+                        self.punctuation_corrector = None
+                else:
+                    print(f"标点修正规则文件不存在: {rules_file}")
+                    self.punctuation_corrector = None
+            except Exception as e:
+                print(f"初始化标点修正组件失败: {e}")
+                self.punctuation_corrector = None
+    
     def _process_without_cache(self, text: str) -> List[Dict[str, str]]:
         """不使用缓存的处理方法"""
+        # 标点修正环节
+        if self.punctuation_corrector:
+            text = self.punctuation_corrector.apply_replacements(text)
+            
         # Step 1: 分句并清洗
         sentences = self._split_and_clean_sentences(text)
         
@@ -200,6 +276,10 @@ class Preprocessor:
         """带缓存的处理方法 - 使用LRU缓存提升重复文本处理性能"""
         # 注意：由于LRU缓存要求参数可哈希，这里直接处理而不使用中间缓存方法
         
+        # 标点修正环节
+        if self.punctuation_corrector:
+            text = self.punctuation_corrector.apply_replacements(text)
+            
         # Step 1: 分句并清洗
         sentences = self._split_and_clean_sentences(text)
         
@@ -250,6 +330,12 @@ class Preprocessor:
         self.config_manager = get_config_manager()
         self.text_replacer.reload_rules()
         self.medical_expander = MedicalExpander()
+        
+        # 重新加载标点修正组件
+        # 注意：标点修正规则只在初始化时加载一次，不需要重新加载
+        # 如果需要重新加载，可以取消下面的注释
+        # if self.punctuation_corrector:
+        #     self.punctuation_corrector.reload_rules()
         
         # 重新加载模式
         self._load_patterns()
